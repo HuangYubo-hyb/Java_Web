@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tlias智能学习辅助系统</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #c2c0c0;
+            padding: 20px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .search-form input[type="text"], .search-form select {
+            margin-right: 10px;
+            padding: 10px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 26%;
+        }
+
+        .search-form button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-form button.clear {
+            background-color: #6c757d;
+        }
+
+        .table {
+            min-width: 100%; 
+            border-collapse: collapse;
+        }
+
+        .table td, .table th { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: center;
+        }
+        
+        .avatar { 
+            width: 30px; 
+            height: 30px; 
+            object-fit: cover; 
+            border-radius: 50%; 
+        }
+
+        .footer {
+            background-color: #c2c0c0;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 30px;
+        }
+
+        .footer .company-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .footer .copyright {
+            font-size: 0.9em;
+        }
+
+        #container {
+            width: 80%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body> 
+    <div id="container">
+        <!-- 顶栏 -->
+        <div class="header">
+            <h1>Tlias智能学习辅助系统</h1>
+            <a href="#">退出登录</a>
+        </div>
+
+        <!-- 搜索表单区域 -->
+        <form class="search-form" @submit.prevent="search">
+            <input type="text" name="name" placeholder="姓名" v-model="searchForm.name"/>
+            <select name="gender" v-model="searchForm.gender">
+                <option value="">性别</option>
+                <option value="1">男</option>
+                <option value="2">女</option>
+            </select>
+            <select name="job" v-model="searchForm.job">
+                <option value="">职位</option>
+                <option value="1">班主任</option>
+                <option value="2">讲师</option>
+                <option value="3">学工主管</option>
+                <option value="4">教研主管</option>
+                <option value="5">咨询师</option>
+            </select>
+            <button type="submit">查询</button>
+            <button type="button" class="clear" @click="clear">清空</button>
+        </form>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>头像</th>
+                    <th>职位</th>
+                    <th>入职日期</th>
+                    <th>最后操作时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(emp, index) in empList" :key="emp.id">
+                    <td>{{ index+1 }}</td>
+                    <td>{{ emp.name }}</td>
+                    <td>
+                        <span v-if="emp.gender === 1">男</span>
+                        <span v-else-if="emp.gender === 2">女</span>
+                    </td>
+                    <td><img :src="emp.image" :alt="emp.name" class="avatar"></td>
+                    <td>
+                        <span v-if="emp.job === '1'">班主任</span>
+                        <span v-else-if="emp.job === '2'">讲师</span>
+                        <span v-else-if="emp.job === '3'">学工主管</span>
+                        <span v-else-if="emp.job === '4'">教研主管</span>
+                        <span v-else-if="emp.job === '5'">咨询师</span>
+                        <span v-else>未知</span>
+                    </td>
+                    <td>{{ emp.entrydate }}</td>
+                    <td>{{ emp.updatetime }}</td>
+                    <td class="btn-group">
+                        <button class="edit">编辑</button>
+                        <button class="delete">删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 无数据时的提示 -->
+        <div v-if="empList.length === 0" style="text-align: center; padding: 20px;">
+            暂无数据
+        </div>
+
+        <!-- 页脚版权区域 -->
+        <footer class="footer">
+            <p class="company-name">江苏传智播客教育科技股份有限公司</p>
+            <p class="copyright">版权所有 Copyright 2006-2024 All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- 正确引入axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+        
+        createApp({ 
+            data() {
+                return {
+                    empList: [],
+                    searchForm: {
+                        name: '',
+                        gender: '',
+                        job: ''
+                    }
+                }
+            },
+            methods: {
+                search() {
+                    console.log('搜索条件:', this.searchForm);
+                    
+                    // 构建查询参数
+                    const params = new URLSearchParams();
+                    if (this.searchForm.name) params.append('name', this.searchForm.name);
+                    if (this.searchForm.gender) params.append('gender', this.searchForm.gender);
+                    if (this.searchForm.job) params.append('job', this.searchForm.job);
+                    
+                    // 发送请求
+                    axios.get(`https://web-server.itheima.net/emps/list?${params}`)
+                        .then((response) => {
+                            console.log('响应数据:', response.data);
+                            if (response.data.code === 1) {
+                                this.empList = response.data.data || [];
+                            } else {
+                                console.error('API返回错误:', response.data.message);
+                                this.empList = [];
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('请求失败:', error);
+                            // 测试用模拟数据
+                            this.empList = [
+                                {
+                                    "id": 1,
+                                    "name": "测试用户",
+                                    "image": "https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/4.jpg",
+                                    "gender": 1,
+                                    "job": "1",
+                                    "entrydate": "2023-06-09",
+                                    "updatetime": "2024-07-30T14:59:38"
+                                }
+                            ];
+                        });
+                },
+                clear() {
+                    this.searchForm = { name: '', gender: '', job: '' };
+                    this.search(); // 清空后重新查询所有数据
+                }
+            },
+            //鈎子函數
+            mounted() {
+                // 页面加载时自动查询数据
+                this.search();
+            }
+        }).mount('#container');
+    </script>
+</body>
+</html>
