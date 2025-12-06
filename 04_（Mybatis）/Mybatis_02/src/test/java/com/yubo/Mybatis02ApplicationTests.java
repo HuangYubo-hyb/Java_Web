@@ -20,4 +20,31 @@ class Mybatis02ApplicationTests {
 		users.forEach(System.out::println);
 	}
 
+	@Test
+	public void deleteById() {
+		User user = userMapper.deleteById(1);
+		System.out.println(user);
+	}
+
+	@Test
+	public void testInsert() {
+		User user = new User(null, "yubo", "123456", "yubo", 18);
+		userMapper.insert(user);
+		System.out.println(user);
+	}
+
+	@Test
+	public void testUpdate() {
+		User user = new User(2, "yubo", "123456", "yubo", 18);
+		int updateRows = userMapper.update(user);
+		System.out.println(updateRows);
+	}
+
+	@Test
+	public void testSelectById(){
+		User user = userMapper.selectById(3);
+		System.out.println(user);
+	}
+
+
 }
